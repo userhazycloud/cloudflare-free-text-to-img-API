@@ -4,7 +4,6 @@ import { json } from "@remix-run/cloudflare";
 import { useActionData, Form, useNavigation, useLoaderData } from "@remix-run/react";
 import type { ActionFunction, LoaderFunction } from "@remix-run/cloudflare";
 import { createAppContext } from "../context";
-import { AppError } from "../services/errors"; 
 
 export const loader: LoaderFunction = async ({ context }) => {
   const appContext = createAppContext(context);
@@ -41,12 +40,10 @@ export const action: ActionFunction = async ({ request, context }: { request: Re
       numSteps
     );
     return json(result);
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error generating image:", error);
-    if (error instanceof AppError) {
-      return json({ error: `Image generation failed: ${error.message}` }, { status: error.status || 500 });
-    }
-    return json({ error: "Image generation failed: Unknown error" }, { status: 500 });
+    // Reverted to a generic check since we removed the custom AppError import
+    return json({ error: `Image generation failed: ${error.message || "Unknown error"}` }, { status: 500 });
   }
 };
 
@@ -89,9 +86,7 @@ const GenerateImage: FC = () => {
   };
 
   return (
-    // Apple HIG: Grouped Background Color
     <div className="min-h-screen flex items-center justify-center bg-[#F2F2F7] px-4 py-8 font-sans">
-      {/* Card Container */}
       <div className="bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-6 sm:p-8 max-w-md w-full border border-gray-100">
         
         <h1 className="text-2xl font-bold text-gray-900 mb-8 text-center tracking-tight">
@@ -100,7 +95,6 @@ const GenerateImage: FC = () => {
         
         <Form method="post" className="space-y-6" onSubmit={handleSubmit}>
           
-          {/* Prompt Input */}
           <div>
             <label htmlFor="prompt" className="block text-sm font-medium text-gray-700 mb-2">
               Prompt
@@ -117,7 +111,6 @@ const GenerateImage: FC = () => {
             />
           </div>
           
-          {/* Model Selection */}
           <div>
             <label htmlFor="model" className="block text-sm font-medium text-gray-700 mb-2">
               Model
@@ -137,7 +130,6 @@ const GenerateImage: FC = () => {
             </select>
           </div>
           
-          {/* Grid for Size and Steps */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="size" className="block text-sm font-medium text-gray-700 mb-2">
@@ -172,7 +164,6 @@ const GenerateImage: FC = () => {
             </div>
           </div>
 
-          {/* Actions - Stacked full-width for mobile (Apple style) */}
           <div className="flex flex-col space-y-3 pt-4">
             <button
               type="button"
@@ -206,14 +197,12 @@ const GenerateImage: FC = () => {
           </div>
         </Form>
         
-        {/* Error Message */}
         {actionData?.error && (
           <div className="mt-6 p-4 bg-red-50 rounded-xl border border-red-100">
             <p className="text-sm text-red-600 text-center font-medium">{actionData.error}</p>
           </div>
         )}
 
-        {/* Image Output */}
         {actionData && actionData.image && (
           <div className="mt-8 border-t border-gray-100 pt-6">
             <h2 className="text-sm font-semibold text-gray-900 mb-4">Result</h2>
